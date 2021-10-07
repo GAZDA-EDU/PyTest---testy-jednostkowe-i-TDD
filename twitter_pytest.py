@@ -18,18 +18,13 @@ def test_tweet_log_message():
         twitter.tweet('test'*41)
         assert twitter.tweets == []
 
-
-def test_tweet_with_hashtag():
+@pytest.mark.parametrize("message, expected", (
+        ("Test #first message", ['first']),
+        ("#first Test message", ['first']),
+        ("#FIRST Test message", ['first']),
+        ("Test message #first", ['first']),
+        ("Test message #first #second", ['first', 'second'])
+))
+def test_tweet_with_hashtag(message, expected):
     twitter = Twitter()
-    message = "Test #first message"
-    assert 'first' in twitter.find_hashtags(message)
-
-def test_tweet_with_hashtag_on_beginning():
-    twitter = Twitter()
-    message = "#first Test message"
-    assert 'first' in twitter.find_hashtags(message)
-
-def test_tweet_with_hashtag_uppercase():
-    twitter = Twitter()
-    message = "#FIRST Test message"
-    assert 'FIRST' in twitter.find_hashtags(message)
+    assert twitter.find_hashtags(message) == expected
