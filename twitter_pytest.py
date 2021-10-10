@@ -3,14 +3,9 @@ import pytest
 from twitter import Twitter
 
 
-@pytest.fixture(scope='function')
-def twitter(request):
-    twitter = Twitter()
-
-    def fin():
-        twitter.delete()
-
-    request.addfinalizer(fin)
+@pytest.fixture()
+def twitter():
+    twitter = Twitter(backend='test.txt')
     yield twitter
     twitter.delete()
 
