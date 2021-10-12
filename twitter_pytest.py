@@ -2,16 +2,19 @@ import pytest
 
 from twitter import Twitter
 
-@pytest.fixture(autouse=True)
-def prepare_backend_file():
-    with open ('text.txt', 'w'):
-        pass
+@pytest.fixture
+def backend(tmpdir):
+    temp_file = tmpdir.join('text.txt')
+    temp_file.write('')
+    return temp_file
 
-@pytest.fixture(params=[None, 'text.txt'], name='twitter')
-def fixture_twitter(request):
-    twitter = Twitter(backend=request.param)
-    yield twitter
-    twitter.delete()
+@pytest.fixture(params=['list', 'backend'], name='twitter')
+def fixture_twitter(backend, request):
+    if request.param == 'list':
+        twitter = Twitter()
+    elif request.param == 'backend':
+        twitter = Twitter(backend=backend)
+    return twitter
 
 
 def test_twitter_initialization(twitter):
@@ -29,6 +32,14 @@ def test_tweet_log_message(twitter):
         twitter.tweet('test' * 41)
         assert twitter.tweets == []
 
+def test_initialize_two_twitter_classes(backend):
+    twitter1 = Twitter(backend=backend)
+    twitter2 = Twitter(backend=backend)
+
+    twitter1.tweet('Test 1')
+    twitter1.tweet('Test 2')
+
+    assert twitter2.tweets == ['Test 1', 'Test 2']
 
 @pytest.mark.parametrize("message, expected", (
         ("Test #first message", ['first']),

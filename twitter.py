@@ -1,4 +1,3 @@
-import os
 import re
 
 
@@ -9,16 +8,10 @@ class Twitter(object):
         self.backend = backend
         self._tweets = []
 
-    def delete(self):
-        if self.backend:
-            os.remove(self.backend)
-
-
     @property
     def tweets(self):
         if self.backend and not self._tweets:
-            with open (self.backend) as twitter_file:
-                self._tweets = [line.rstrip('\n') for line in twitter_file]
+            self._tweets = [line.rstrip('\n') for line in self.backend.readlines()]
         return self._tweets
 
     def tweet(self, message):
@@ -26,10 +19,7 @@ class Twitter(object):
             raise Exception("Message to long.")
         self.tweets.append(message)
         if self.backend:
-            with open(self.backend, 'w') as twitter_file:
-                twitter_file.write("\n".join(self.tweets))
+            self.backend.write("\n".join(self.tweets))
 
     def find_hashtags(self, message):
         return [m.lower() for m in re.findall("#(\w+)", message)]
-
-
