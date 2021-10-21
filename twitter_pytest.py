@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from twitter import Twitter
@@ -27,10 +29,6 @@ def fixture_twitter(backend, username, request, monkeypatch):
     elif request.param == 'backend':
         twitter = Twitter(backend=backend, username=username)
 
-    def monkey_return():
-        return 'test'
-
-    monkeypatch.setattr(twitter, 'get_user_avatar', monkey_return)
     return twitter
 
 
@@ -39,15 +37,15 @@ def test_twitter_initialization(twitter):
 
 
 def test_tweet_single_message(twitter):
-    twitter.tweet('Test message')
-    assert twitter.tweet_message == ['Test message']
+    with patch.object(twitter, 'get_user_avatar', return_value='test'):
+        twitter.tweet('Test message')
+        assert twitter.tweet_messages == ['Test message']
 
 
 def test_tweet_log_message(twitter):
-    assert twitter
     with pytest.raises(Exception):
         twitter.tweet('test' * 41)
-        assert twitter.tweets == []
+    assert twitter.tweet_messages == []
 
 def test_initialize_two_twitter_classes(backend):
     twitter1 = Twitter(backend=backend)

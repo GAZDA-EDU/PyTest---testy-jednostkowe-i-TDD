@@ -24,7 +24,7 @@ class Twitter(object):
         return self._tweets
 
     @property
-    def tweet_message(self):
+    def tweet_messages(self):
         return [tweet['message'] for tweet in self.tweets]
 
     def get_user_avatar(self):
