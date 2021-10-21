@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+import requests
 
 from twitter import Twitter
 
@@ -41,7 +42,7 @@ def test_twitter_initialization(twitter):
     assert twitter
 
 
-@patch.object(Twitter, 'get_user_avatar', return_value='test')
+@patch.object(requests, 'get', return_value=ResponseGetMock())
 def test_tweet_single_message(avatar_mock, twitter):
     twitter.tweet('Test message')
     assert twitter.tweet_messages == ['Test message']
@@ -73,7 +74,7 @@ def test_initialize_two_twitter_classes(backend):
 def test_tweet_with_hashtag(twitter, message, expected):
     assert twitter.find_hashtags(message) == expected
 
-@patch.object(Twitter, 'get_user_avatar', return_value='test')
+@patch.object(requests, 'get', return_value=ResponseGetMock())
 def test_tweet_with_username(avatar_mock, twitter):
     if not twitter.username:
         pytest.skip()
