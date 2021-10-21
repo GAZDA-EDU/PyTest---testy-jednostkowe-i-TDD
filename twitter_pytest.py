@@ -4,13 +4,16 @@ import pytest
 
 from twitter import Twitter
 
+
 class ResponseGetMock(object):
     def json(self):
         return {'avatar_url': 'test'}
 
+
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
     monkeypatch.delattr('requests.sessions.Session.request')
+
 
 @pytest.fixture
 def backend(tmpdir):
@@ -18,9 +21,11 @@ def backend(tmpdir):
     temp_file.write('')
     return temp_file
 
+
 @pytest.fixture(params=[None, 'python'])
 def username(request):
     return request.param
+
 
 @pytest.fixture(params=['list', 'backend'], name='twitter')
 def fixture_twitter(backend, username, request, monkeypatch):
@@ -36,16 +41,17 @@ def test_twitter_initialization(twitter):
     assert twitter
 
 
-def test_tweet_single_message(twitter):
-    with patch.object(twitter, 'get_user_avatar', return_value='test'):
-        twitter.tweet('Test message')
-        assert twitter.tweet_messages == ['Test message']
+@patch.object(Twitter, 'get_user_avatar', return_value='test')
+def test_tweet_single_message(avatar_mock, twitter):
+    twitter.tweet('Test message')
+    assert twitter.tweet_messages == ['Test message']
 
 
 def test_tweet_log_message(twitter):
     with pytest.raises(Exception):
         twitter.tweet('test' * 41)
     assert twitter.tweet_messages == []
+
 
 def test_initialize_two_twitter_classes(backend):
     twitter1 = Twitter(backend=backend)
@@ -54,7 +60,8 @@ def test_initialize_two_twitter_classes(backend):
     twitter1.tweet('Test 1')
     twitter1.tweet('Test 2')
 
-    assert twitter2.tweets == ['Test 1', 'Test 2']
+    assert twitter2.tweet_messages == ['Test 1', 'Test 2']
+
 
 @pytest.mark.parametrize("message, expected", (
         ("Test #first message", ['first']),
@@ -66,8 +73,11 @@ def test_initialize_two_twitter_classes(backend):
 def test_tweet_with_hashtag(twitter, message, expected):
     assert twitter.find_hashtags(message) == expected
 
-def test_tweet_with_username(twitter):
+@patch.object(Twitter, 'get_user_avatar', return_value='test')
+def test_tweet_with_username(avatar_mock, twitter):
     if not twitter.username:
         pytest.skip()
+
     twitter.tweet('Test message')
-    assert twitter.tweets == [{'message': 'Test message', 'avatar':'test'}]
+    assert twitter.tweets == [{'message': 'Test message', 'avatar': 'test'}]
+    avatar_mock.assert_called()
